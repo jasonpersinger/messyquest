@@ -1,0 +1,486 @@
+@font-face {
+  font-family: "VT323";
+  src: url("assets/fonts/VT323-latin.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Jacquarda Bastarda 9";
+  src: url("assets/fonts/JacquardaBastarda9-latin.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+}
+
+/*
+  The palette is borrowed from the three projects:
+  kobold.fm (stone, mortar, amber, bone, ash), GHOULBOX (ghoul-bone),
+  bloodwrought (night, nightshade).
+*/
+:root {
+  color-scheme: dark;
+  --stone: #0d0b09;
+  --stone-2: #1b1612;
+  --mortar: #3a2f24;
+  --amber: #f2a23a;
+  --bone: #e8dcc4;
+  --ash: #8f826f;
+  --ghoul-bone: #efdfc6;
+  --night: #0b0a0e;
+  --nightshade: #c84ce6;
+  --display: "Jacquarda Bastarda 9", "Old English Text MT", serif;
+  --body: "VT323", "Courier New", monospace;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+/* html takes the viewport's overflow so body's clip applies to body itself
+   and the torch glow can't create a sideways scroll. */
+html {
+  min-width: 320px;
+  overflow-x: hidden;
+  background: var(--stone);
+}
+
+/* The dungeon wall: GHOULBOX's own 64x32 brick tile at 4x, darkened toward the edges. */
+body {
+  min-height: 100vh;
+  margin: 0;
+  overflow-x: clip;
+  color: var(--bone);
+  background:
+    radial-gradient(ellipse 80% 70% at 50% 30%, #0d0b0973, #0d0b09f2 100%) fixed,
+    url("assets/art/wall.png") 0 0 / 256px 128px var(--stone);
+  image-rendering: pixelated;
+  font-family: var(--body);
+  font-size: 1.3rem;
+  line-height: 1.3;
+}
+
+/* Scanlines, as on kobold.fm. Never blocks clicks. */
+body::after {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  pointer-events: none;
+  background: repeating-linear-gradient(to bottom, #0000002e 0 1px, transparent 1px 3px);
+  content: "";
+}
+
+::selection {
+  color: var(--stone);
+  background: var(--amber);
+}
+
+a {
+  color: inherit;
+}
+
+.skip-link {
+  position: fixed;
+  top: 0.75rem;
+  left: 0.75rem;
+  z-index: 100;
+  padding: 0.5rem 0.85rem;
+  color: var(--stone);
+  background: var(--amber);
+  text-decoration: none;
+  transform: translateY(-180%);
+}
+
+.skip-link:focus {
+  transform: translateY(0);
+}
+
+.page-shell {
+  width: min(100% - 2rem, 78rem);
+  margin-inline: auto;
+}
+
+/* ---------- Masthead: the wordmark between two torches ---------- */
+
+.masthead {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  padding: clamp(4rem, 10vw, 7rem) 0 clamp(3rem, 7vw, 5rem);
+  text-align: center;
+  isolation: isolate;
+}
+
+.site-title {
+  width: 100%;
+  margin: 0;
+  outline: 0;
+}
+
+.logo-frame {
+  position: relative;
+  display: block;
+  width: 100%;
+  padding: 0.75rem 0;
+}
+
+.logo-frame::after {
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    to bottom,
+    transparent 0 2px,
+    #0e0b124d 2px 3px
+  );
+  content: "";
+  pointer-events: none;
+}
+
+.wordmark {
+  display: block;
+  width: min(100%, 68rem);
+  height: auto;
+  margin-inline: auto;
+  overflow: visible;
+  image-rendering: pixelated;
+}
+
+.logo-variant {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.logo-variant--stack {
+  opacity: 1;
+  animation: logo-flicker 8s infinite steps(1, end);
+}
+
+.logo-variant--hollow {
+  opacity: 0;
+}
+
+.glitch-channel {
+  opacity: 0.74;
+}
+
+.logo-tear {
+  opacity: 0;
+}
+
+.site-title.is-glitching .logo-variant--stack {
+  opacity: 0;
+}
+
+.site-title.is-glitching .logo-variant--hollow {
+  opacity: 1;
+}
+
+.site-title.is-glitching .logo-tear {
+  opacity: 1;
+  animation: logo-tear 180ms steps(2, end);
+}
+
+.site-title:focus-visible .logo-frame {
+  outline: 3px solid var(--bone);
+  outline-offset: 0.5rem;
+}
+
+.tagline {
+  position: relative;
+  margin: clamp(1.5rem, 4vw, 2.5rem) 0 0;
+  color: var(--bone);
+  font-family: var(--display);
+  font-size: clamp(1.9rem, 5vw, 3rem);
+  font-weight: 400;
+  line-height: 1.1;
+  text-shadow: 3px 3px 0 #000;
+}
+
+/* GHOULBOX's torch sprite (4 frames, 12x30) at 4x, with its amber glow behind. */
+.torch {
+  position: absolute;
+  top: 50%;
+  z-index: -1;
+  display: none;
+  width: 48px;
+  height: 120px;
+  margin-top: -60px;
+  background: url("assets/art/torch.png") 0 0 / 192px 120px no-repeat;
+  animation: torch 0.48s steps(4) infinite;
+}
+
+.torch--left {
+  left: 0;
+}
+
+.torch--right {
+  right: 0;
+  animation-delay: -0.24s;
+}
+
+.torch::before {
+  position: absolute;
+  top: 18px;
+  left: 50%;
+  z-index: -1;
+  width: 420px;
+  height: 420px;
+  margin: -210px 0 0 -210px;
+  background: radial-gradient(circle, #f2a23a4d, #d4561e1a 40%, transparent 68%);
+  content: "";
+  pointer-events: none;
+  animation: glow 1.7s ease-in-out infinite alternate;
+}
+
+.torch--right::before {
+  animation-duration: 1.3s;
+}
+
+/* ---------- Projects: one shell, three accents ---------- */
+
+.projects {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 2.5rem;
+  padding: 0.6rem;
+}
+
+/* kobold.fm's stepped rings, shared by every card; only the outer ring takes the accent. */
+.project {
+  --accent: var(--amber);
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  padding: 1rem 1rem 1.5rem;
+  background: linear-gradient(180deg, var(--stone-2), var(--stone));
+  box-shadow:
+    0 0 0 3px var(--stone),
+    0 0 0 5px var(--mortar),
+    0 0 0 7px var(--stone),
+    0 0 0 9px var(--accent);
+}
+
+.project--ghoulbox {
+  --accent: var(--ghoul-bone);
+}
+
+.project--bloodwrought {
+  --accent: var(--nightshade);
+}
+
+/* The recessed window where each project shows its own art and ground. */
+.project__crest {
+  display: flex;
+  height: 11rem;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  padding: 1rem;
+  box-shadow:
+    inset 0 0 0 2px #000,
+    inset 0 0 0 3px var(--mortar);
+}
+
+.project h2 {
+  margin: 0;
+  font-weight: 400;
+  line-height: 0;
+}
+
+.project__blurb {
+  flex: 1;
+  max-width: 34ch;
+  margin: 0 auto 1.5rem;
+  color: var(--bone);
+  text-align: center;
+}
+
+/* GHOULBOX's pixel slab, filled with the card's accent. */
+.project__link {
+  display: flex;
+  min-height: 3.25rem;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.25rem 1rem;
+  color: var(--stone);
+  background: var(--accent);
+  font-size: 1.5rem;
+  line-height: 1;
+  letter-spacing: 0.04em;
+  text-decoration: none;
+  text-transform: uppercase;
+  box-shadow:
+    inset 0 -4px 0 #00000059,
+    inset 0 4px 0 #ffffff4d,
+    0 0 0 2px #000;
+}
+
+.project__link:hover {
+  filter: brightness(1.12);
+}
+
+.project__link:active {
+  transform: translateY(2px);
+}
+
+.project__more {
+  display: flex;
+  justify-content: center;
+  gap: 1.5rem;
+  margin: 1rem 0 0;
+}
+
+.project__more a {
+  color: var(--ash);
+}
+
+.project__more a:hover {
+  color: var(--accent);
+}
+
+.project__link:focus-visible,
+.project__more a:focus-visible,
+.skip-link:focus-visible {
+  outline: 3px solid var(--bone);
+  outline-offset: 4px;
+}
+
+/* kobold.fm: torch glow behind the pixel-blackletter name */
+.project--kobold .project__crest {
+  background: radial-gradient(ellipse at 50% 60%, #f2a23a29, transparent 70%), var(--stone);
+}
+
+.project--kobold .project__name {
+  color: var(--amber);
+  font-family: var(--display);
+  font-size: clamp(3rem, 8vw, 4rem);
+  line-height: 1;
+  text-shadow: 3px 3px 0 #000;
+}
+
+/* GHOULBOX: its brick wall, darkened, behind skull and name */
+.project--ghoulbox .project__crest {
+  background:
+    linear-gradient(#080808b3, #080808b3),
+    url("assets/art/wall.png") 0 0 / 256px 128px;
+}
+
+.ghoulbox-skull {
+  width: 3.5rem;
+  height: auto;
+}
+
+.ghoulbox-logo {
+  width: min(13rem, 52vw);
+  height: auto;
+  filter: drop-shadow(0 0 10px #ef9a2959);
+}
+
+/* bloodwrought: night violet field, wordmark over the hand sigil */
+.project--bloodwrought .project__crest {
+  flex-direction: column;
+  gap: 0.5rem;
+  background: radial-gradient(ellipse at 50% 50%, #c84ce61f, transparent 70%), var(--night);
+}
+
+.bloodwrought-mark {
+  width: 100%;
+  max-width: 24rem;
+  height: auto;
+}
+
+.bloodwrought-hand {
+  width: 44px;
+  height: auto;
+}
+
+/* ---------- Footer ---------- */
+
+.site-footer {
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 4rem 0 2.5rem;
+  color: var(--ash);
+  text-align: center;
+}
+
+.footer-wordmark {
+  width: min(16rem, 72vw);
+  height: auto;
+  image-rendering: pixelated;
+}
+
+.site-footer p {
+  margin: 0;
+}
+
+@media (min-width: 64rem) {
+  .page-shell {
+    width: min(100% - 4rem, 78rem);
+  }
+
+  .torch {
+    display: block;
+  }
+
+  .projects {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .site-footer {
+    justify-content: space-between;
+    flex-direction: row;
+  }
+}
+
+@keyframes logo-flicker {
+  0%, 17%, 19%, 52%, 54%, 100% { opacity: 1; }
+  18%, 53% { opacity: 0.84; }
+}
+
+@keyframes logo-tear {
+  0% { transform: translateX(-2px); }
+  45% { transform: translateX(3px); }
+  100% { transform: translateX(-1px); }
+}
+
+@keyframes torch {
+  to { background-position: -192px 0; }
+}
+
+@keyframes glow {
+  0% { opacity: 0.75; }
+  40% { opacity: 1; }
+  55% { opacity: 0.82; }
+  100% { opacity: 0.95; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  .logo-variant--stack,
+  .site-title.is-glitching .logo-variant--stack {
+    opacity: 1;
+  }
+
+  .logo-variant--hollow,
+  .site-title.is-glitching .logo-variant--hollow {
+    display: none;
+  }
+
+  .project__link:active {
+    transform: none;
+  }
+}
